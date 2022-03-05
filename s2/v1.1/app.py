@@ -93,12 +93,16 @@ def create_song():
         content = request.get_json()
         Artist = content['Artist']
         SongTitle = content['SongTitle']
+        OrigArtist = content['OrigArtist'] if 'OrigArtist' in content else None
     except Exception:
         return json.dumps({"message": "error reading arguments"})
     url = db['name'] + '/' + db['endpoint'][1]
+    payload = {"objtype": "music", "Artist": Artist, "SongTitle": SongTitle}
+    if OrigArtist is not None:
+        payload["OrigArtist"] = OrigArtist
     response = requests.post(
         url,
-        json={"objtype": "music", "Artist": Artist, "SongTitle": SongTitle},
+        json=payload,
         headers={'Authorization': headers['Authorization']})
     return (response.json())
 
@@ -115,55 +119,6 @@ def delete_song(music_id):
     response = requests.delete(
         url,
         params={"objtype": "music", "objkey": music_id},
-        headers={'Authorization': headers['Authorization']})
-    return (response.json())
-
-
-@bp.route('/read_orig_artist/<music_id>', methods=['GET'])
-def read_orig_artist(music_id):
-    headers = request.headers
-    # check header here
-    if 'Authorization' not in headers:
-        return Response(json.dumps({"error": "missing auth"}),
-                        status=401,
-                        mimetype='application/json')
-    payload = {"objtype": "music", "objkey": music_id}
-    url = db['name'] + '/' + db['endpoint'][0]
-    response = requests.get(
-        url,
-        params=payload,
-        headers={'Authorization': headers['Authorization']})
-    if response.status_code != 200:
-        response = {
-            "Count": 0,
-            "Items": []
-        }
-        return app.make_response((response, 404))
-    item = response.json()['Items'][0]
-    oa = (item['orig_artist'] if 'orig_artist' in item
-          else None)
-    return {'orig_artist': oa}
-
-
-@bp.route('/write_orig_artist/<music_id>', methods=['PUT'])
-def write_orig_artist(music_id):
-    headers = request.headers
-    # check header here
-    if 'Authorization' not in headers:
-        return Response(json.dumps({"error": "missing auth"}),
-                        status=401,
-                        mimetype='application/json')
-    try:
-        content = request.get_json()
-        orig_artist = content['orig_artist']
-    except Exception:
-        return json.dumps({"message": "error reading arguments"})
-    payload = {"objtype": "music", "objkey": music_id}
-    url = db['name'] + '/' + db['endpoint'][3]
-    response = requests.put(
-        url,
-        params=payload,
-        json={"orig_artist": orig_artist},
         headers={'Authorization': headers['Authorization']})
     return (response.json())
 
