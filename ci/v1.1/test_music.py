@@ -38,6 +38,7 @@ def test_simple_run(mserv, song):
     mserv.delete(m_id)
     # No status to check
 
+
 def test_full_cycle(mserv):
     # `mserv` is an instance of the `Music` class
 
